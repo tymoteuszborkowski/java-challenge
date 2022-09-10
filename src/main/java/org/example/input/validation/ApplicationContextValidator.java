@@ -2,7 +2,7 @@ package org.example.input.validation;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.domain.CoordinateType;
+import org.example.domain.ResultsType;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,7 +23,7 @@ public class ApplicationContextValidator {
         int n = validateN(args);
         List<Path> csvFilePaths = validateCsvFilePaths(args);
         int m = validateM(args, n, csvFilePaths);
-        CoordinateType type = validateType(args);
+        ResultsType type = validateType(args);
 
         return new ApplicationContext(x, y, n, m, type, csvFilePaths);
     }
@@ -81,10 +81,10 @@ public class ApplicationContextValidator {
         return m;
     }
 
-    private static CoordinateType validateType(String[] args) {
+    private static ResultsType validateType(String[] args) {
         logger.debug("Validating type.");
         try {
-            return CoordinateType.valueOf(args[3].toUpperCase());
+            return ResultsType.valueOf(args[3].toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new IncorrectArgumentsException(
                     "Provide correct value of \"type\" parameter. Correct values are: closest/farthest.");

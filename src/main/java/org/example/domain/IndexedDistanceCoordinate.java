@@ -5,19 +5,19 @@ import java.util.Objects;
 public class IndexedDistanceCoordinate {
 
     private final DistancedCoordinate distancedCoordinate;
-    private final int idx;
+    private final int fileIdx;
 
-    public IndexedDistanceCoordinate(DistancedCoordinate distancedCoordinate, int idx) {
+    public IndexedDistanceCoordinate(DistancedCoordinate distancedCoordinate, int fileIdx) {
         this.distancedCoordinate = distancedCoordinate;
-        this.idx = idx;
+        this.fileIdx = fileIdx;
     }
 
     public DistancedCoordinate getDistancedCoordinate() {
         return distancedCoordinate;
     }
 
-    public int getIdx() {
-        return idx;
+    public int getFileIdx() {
+        return fileIdx;
     }
 
     @Override
@@ -25,11 +25,19 @@ public class IndexedDistanceCoordinate {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         IndexedDistanceCoordinate that = (IndexedDistanceCoordinate) o;
-        return idx == that.idx && Objects.equals(distancedCoordinate, that.distancedCoordinate);
+        return fileIdx == that.fileIdx && Objects.equals(distancedCoordinate, that.distancedCoordinate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(distancedCoordinate, idx);
+        return Objects.hash(distancedCoordinate, fileIdx);
+    }
+
+    @Override
+    public String toString() {
+        return "IndexedDistanceCoordinate{" +
+                "distancedCoordinate=" + distancedCoordinate +
+                ", idx=" + fileIdx +
+                '}';
     }
 }

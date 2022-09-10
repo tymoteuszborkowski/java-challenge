@@ -2,10 +2,11 @@ package org.example;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.example.domain.Coordinate;
 import org.example.domain.DistancedCoordinate;
 import org.example.input.validation.ApplicationContext;
 import org.example.input.validation.ApplicationContextValidator;
+import org.example.services.FileResultsAggregationService;
+import org.example.services.SingleFileExtractor;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,11 +25,13 @@ public class Main {
 
         ApplicationContext appContext = ApplicationContextValidator.validateAndBuildAppContext(tmpArgs.split(" "));
         Comparator<DistancedCoordinate> distanceCoordinateComparator =
-                appContext.getType().distancedCoordinateComparator;
+                appContext.getResultsType().distancedCoordinateComparator;
 
-        Coordinate coordP = new Coordinate(appContext.getX(), appContext.getY());
-        FinalResultCalculator finalResultCalculator =
-                new FinalResultCalculator(appContext.getM(), appContext);
+        DistancedCoordinate p = new DistancedCoordinate(appContext.getX(), appContext.getY(), 0.0D);
+        SingleFileExtractor fileExtractor = new SingleFileExtractor(p, appContext.getN(),
+                distanceCoordinateComparator, appContext.getResultsType());
+        FileResultsAggregationService finalResultCalculator = new FileResultsAggregationService(appContext);
+
 
         long startTime = System.nanoTime();
 
@@ -38,16 +41,13 @@ public class Main {
                 .map(path -> {
                     try {
                         Stream<String> lines = Files.lines(path);
-                        SingleFileExtractor fileExtractor = new SingleFileExtractor(
-                                lines, coordP, appContext.getN(), distanceCoordinateComparator,
-                                appContext.getType());
-                        return fileExtractor.findExtremeCoordinates();
+                        return fileExtractor.findCoordinates(lines);
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }).toArray(DistancedCoordinate[][]::new);
 
-        DistancedCoordinate[] finalResult = finalResultCalculator.calculate(eachFileResults);
+        DistancedCoordinate[] finalResult = finalResultCalculator.aggregateResults(eachFileResults);
 
         long estimatedTime = System.nanoTime() - startTime;
         long estimatedTimeInMs = MILLISECONDS.convert(estimatedTime, NANOSECONDS);
@@ -61,10 +61,9 @@ public class Main {
                                          ApplicationContext appContext,
                                          DistancedCoordinate[][] eachFileResults,
                                          DistancedCoordinate[] finalResult) {
-        logger.info("Elapsed time for processing of final result: {} ms", estimatedTimeInMs);
         logger.info("------------------ PART ONE ------------------");
         logger.info("N({}) {} coordinates to P({},{}) for each file",
-                appContext.getN(), appContext.getType().name().toLowerCase(), appContext.getX(), appContext.getY());
+                appContext.getN(), appContext.getResultsType().name().toLowerCase(), appContext.getX(), appContext.getY());
         Arrays.stream(eachFileResults)
                 .forEach(singleFileCoords -> {
                     logger.info("---------------- FILE ---------------- ");
@@ -77,12 +76,14 @@ public class Main {
 
         logger.info("------------------ PART TWO ------------------");
         logger.info("M({}) {} coordinates to P({},{})",
-                appContext.getM(), appContext.getType().name().toLowerCase(), appContext.getX(), appContext.getY());
+                appContext.getM(), appContext.getResultsType().name().toLowerCase(), appContext.getX(), appContext.getY());
 
         for (int i = 0; i < finalResult.length; i++) {
             DistancedCoordinate coord = finalResult[i];
             logger.info("{}. {},{}", (i + 1), coord.getX(), coord.getY());
         }
+
+        logger.info("Elapsed time for processing of final result: {} ms", estimatedTimeInMs);
     }
 
 

@@ -1,6 +1,5 @@
 package org.example.domain;
 
-import java.util.Comparator;
 import java.util.Objects;
 
 public class DistancedCoordinate {
@@ -13,6 +12,10 @@ public class DistancedCoordinate {
         this.x = x;
         this.y = y;
         this.distance = distance;
+    }
+
+    public double distanceTo(double x2, double y2) {
+        return Math.sqrt((y2 - y) * (y2 - y) + (x2 - x) * (x2 - x));
     }
 
     public double getDistance() {
@@ -40,4 +43,12 @@ public class DistancedCoordinate {
         return Objects.hash(x, y, distance);
     }
 
+    @Override
+    public String toString() {
+        return "DistancedCoordinate{" +
+                "x=" + x +
+                ", y=" + y +
+                ", distance=" + distance +
+                '}';
+    }
 }

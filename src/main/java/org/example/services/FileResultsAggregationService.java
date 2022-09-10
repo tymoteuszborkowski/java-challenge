@@ -4,7 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.example.domain.DistancedCoordinate;
 import org.example.domain.IndexedDistanceCoordinate;
-import org.example.input.validation.ApplicationContext;
+import org.example.domain.ResultsType;
 
 import java.util.Arrays;
 import java.util.PriorityQueue;
@@ -13,10 +13,12 @@ public class FileResultsAggregationService {
 
     private static final Logger logger = LogManager.getLogger(FileResultsAggregationService.class);
 
-    private final ApplicationContext appContext;
+    private final int m;
+    private final ResultsType resultsType;
 
-    public FileResultsAggregationService(ApplicationContext appContext) {
-        this.appContext = appContext;
+    public FileResultsAggregationService(int m, ResultsType resultsType) {
+        this.m = m;
+        this.resultsType = resultsType;
     }
 
     public DistancedCoordinate[] aggregateResults(DistancedCoordinate[][] eachFileResults) {
@@ -27,9 +29,9 @@ public class FileResultsAggregationService {
                 Arrays.toString(lastTakenIndicesForEachFile));
 
         logger.debug("Creating final results ...");
-        DistancedCoordinate[] finalResults = new DistancedCoordinate[appContext.getM()];
+        DistancedCoordinate[] finalResults = new DistancedCoordinate[m];
         int numOfFinalRecords = 0;
-        while (numOfFinalRecords < appContext.getM()) {
+        while (numOfFinalRecords < m) {
 
             IndexedDistanceCoordinate topHeapElement = heap.poll();
             int fileIdx = topHeapElement.getFileIdx();
@@ -37,7 +39,6 @@ public class FileResultsAggregationService {
 
             logger.debug("Polled top element from heap: {}", topHeapElement);
             logger.debug("Assigned next coordinate index for file from top heap element: {}", nextCoordIdxForFile);
-            logger.debug("Number of coordinates for this file: {}", eachFileResults[fileIdx].length);
 
             if (nextCoordIdxForFile < eachFileResults[fileIdx].length) {
                 lastTakenIndicesForEachFile[fileIdx] = nextCoordIdxForFile;
@@ -45,8 +46,8 @@ public class FileResultsAggregationService {
                         new IndexedDistanceCoordinate(eachFileResults[fileIdx][nextCoordIdxForFile], fileIdx);
                 heap.add(nextCoordForFile);
 
-                logger.debug("Assigned next coordinate index is less than number of coordinates for this file." +
-                        " Adding new coordinate to heap: {}", nextCoordForFile);
+                logger.debug("Assigned next coordinate index is less than number of coordinates for this file ({})." +
+                        " Adding new coordinate to heap: {}",eachFileResults[fileIdx].length,  nextCoordForFile);
                 logger.debug("Updated last taken indices for each file array: {}",
                         Arrays.toString(lastTakenIndicesForEachFile));
             }
@@ -54,9 +55,7 @@ public class FileResultsAggregationService {
             finalResults[numOfFinalRecords] = topHeapElement.getDistancedCoordinate();
             numOfFinalRecords++;
 
-            logger.debug("Assigned next coordinate index is equal to / greater than number of coordinates for file." +
-                    " Added element for final results array.");
-            logger.debug("Final results array: {}", Arrays.toString(finalResults));
+            logger.debug("Added element for final results array: {}", Arrays.toString(finalResults));
         }
 
         return finalResults;
@@ -65,8 +64,7 @@ public class FileResultsAggregationService {
     private PriorityQueue<IndexedDistanceCoordinate> prepareInitialHeap(DistancedCoordinate[][] eachFileResults) {
         logger.debug("Creating heap which will include final farthest/closest elements");
         PriorityQueue<IndexedDistanceCoordinate> heap = new PriorityQueue<>(
-                appContext.getM(),
-                appContext.getResultsType().indexedDistanceCoordinateComparator.reversed());
+                m, resultsType.indexedDistanceCoordinateComparator.reversed());
 
         logger.debug("Adding on heap first element from each file result array...");
         for (int idxOfFile = 0; idxOfFile < eachFileResults.length; idxOfFile++) {

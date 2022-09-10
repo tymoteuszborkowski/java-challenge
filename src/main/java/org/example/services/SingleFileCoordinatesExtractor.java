@@ -6,34 +6,30 @@ import org.example.domain.DistancedCoordinate;
 import org.example.domain.ResultsType;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.stream.Stream;
 
-public class SingleFileExtractor {
-    private static final Logger logger = LogManager.getLogger(SingleFileExtractor.class);
+public class SingleFileCoordinatesExtractor {
+    private static final Logger logger = LogManager.getLogger(SingleFileCoordinatesExtractor.class);
 
     private final DistancedCoordinate p;
     private final int n;
-    private final Comparator<DistancedCoordinate> distanceCoordinateComparator;
     private final ResultsType type;
 
-    public SingleFileExtractor(DistancedCoordinate p,
-                               int n,
-                               Comparator<DistancedCoordinate> distanceCoordinateComparator,
-                               ResultsType type) {
+    public SingleFileCoordinatesExtractor(DistancedCoordinate p,
+                                          int n,
+                                          ResultsType type) {
         this.p = p;
         this.n = n;
-        this.distanceCoordinateComparator = distanceCoordinateComparator;
         this.type = type;
     }
 
     public DistancedCoordinate[] findCoordinates(Stream<String> lines) {
-        PriorityQueue<DistancedCoordinate> heap = new PriorityQueue<>(n, distanceCoordinateComparator);
+        PriorityQueue<DistancedCoordinate> heap = new PriorityQueue<>(n, type.distancedCoordinateComparator);
         lines.forEach(line -> performHeapUpdate(line, heap));
 
         DistancedCoordinate[] resultArray = heap.toArray(new DistancedCoordinate[n]);
-        Arrays.sort(resultArray, distanceCoordinateComparator.reversed());
+        Arrays.sort(resultArray, type.distancedCoordinateComparator.reversed());
 
         logger.debug("File output sorted array: {} ", Arrays.toString(resultArray));
         return resultArray;

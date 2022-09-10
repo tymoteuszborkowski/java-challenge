@@ -6,12 +6,11 @@ import org.example.domain.DistancedCoordinate;
 import org.example.input.validation.ApplicationContext;
 import org.example.input.validation.ApplicationContextValidator;
 import org.example.services.FileResultsAggregationService;
-import org.example.services.SingleFileExtractor;
+import org.example.services.SingleFileCoordinatesExtractor;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -21,16 +20,13 @@ public class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     public static void main(String[] args) {
-        String tmpArgs = "180.2323 232.13523 20 CLOSEST 10 /home/tymek/Desktop/challenge-tests/data0.csv /home/tymek/Desktop/challenge-tests/data1.csv /home/tymek/Desktop/challenge-tests/data2.csv /home/tymek/Desktop/challenge-tests/data3.csv /home/tymek/Desktop/challenge-tests/data4.csv /home/tymek/Desktop/challenge-tests/data5.csv ";
-
-        ApplicationContext appContext = ApplicationContextValidator.validateAndBuildAppContext(tmpArgs.split(" "));
-        Comparator<DistancedCoordinate> distanceCoordinateComparator =
-                appContext.getResultsType().distancedCoordinateComparator;
+        ApplicationContext appContext = ApplicationContextValidator.validateAndBuildAppContext(args);
 
         DistancedCoordinate p = new DistancedCoordinate(appContext.getX(), appContext.getY(), 0.0D);
-        SingleFileExtractor fileExtractor = new SingleFileExtractor(p, appContext.getN(),
-                distanceCoordinateComparator, appContext.getResultsType());
-        FileResultsAggregationService finalResultCalculator = new FileResultsAggregationService(appContext);
+        SingleFileCoordinatesExtractor fileExtractor = new SingleFileCoordinatesExtractor(p, appContext.getN(), appContext.getResultsType());
+        FileResultsAggregationService finalResultCalculator = new FileResultsAggregationService(
+                appContext.getM(),
+                appContext.getResultsType());
 
 
         long startTime = System.nanoTime();
